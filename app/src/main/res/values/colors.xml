@@ -2,4 +2,29 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Base -->
+    <color name="n_bg">#FFF3DC</color>
+    <color name="n_callout">#FFF8F1</color>
+    <color name="n_border">#F2E3C9</color>
+    <color name="n_bar_track">#F5E7CC</color>
+    <color name="n_text">#3B2F2F</color>
+    <color name="n_gray">#7A6A66</color>
+    <color name="n_light_gray">#A6958F</color>
+    <color name="n_cover">#FFD8D8</color>
+    <color name="n_bulb">#C9A15A</color>
+    <color name="n_accent">#82A07F</color>
+    <color name="n_accent_soft">#B8CFB3</color>
+
+    <!-- Tags (background + text) -->
+    <color name="tag_green_bg">#E3EDDF</color>
+    <color name="tag_green">#4E6B4B</color>
+    <color name="tag_red_bg">#FFD8D8</color>
+    <color name="tag_red">#9C3D53</color>
+    <color name="tag_orange_bg">#FFE6C0</color>
+    <color name="tag_orange">#8A5A1E</color>
+    <color name="tag_blue_bg">#E6EEF5</color>
+    <color name="tag_blue">#3E5E78</color>
+    <color name="tag_pink_bg">#F6E2E8</color>
+    <color name="tag_pink">#9C3D63</color>
 </resources>
