@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+<!-- Base -->
+<color name="n_bg">#191919</color>
+<color name="n_text">#E3E2E0</color>
+<color name="n_gray">#9B9A97</color>
+<color name="n_light_gray">#7F7E7B</color>
+<color name="n_border">#2F2F2F</color>
+<color name="n_cover">#2A2622</color>
+<color name="n_callout">#252525</color>
+<color name="n_bar_track">#2F2F2F</color>
+<color name="n_bulb">#E0B04E</color>
+
+    <!-- Tags (background + text) -->
+<color name="tag_green_bg">#243D30</color>
+<color name="tag_green">#6CC4A4</color>
+<color name="tag_red_bg">#522E2A</color>
+<color name="tag_red">#FF8A80</color>
+<color name="tag_orange_bg">#5C3B23</color>
+<color name="tag_orange">#FFB26B</color>
+<color name="tag_blue_bg">#143A4E</color>
+<color name="tag_blue">#7DB8E0</color>
+<color name="tag_pink_bg">#4E2C3C</color>
+<color name="tag_pink">#F08BBE</color>
+
+    <color name="n_accent">#E0627A</color>
+    <color name="n_accent_soft">#801336</color>
+
+</resources>
