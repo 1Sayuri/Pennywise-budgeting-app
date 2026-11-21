@@ -235,10 +235,34 @@
 
         <!-- Bottom bar (later) -->
         <LinearLayout
+
             android:id="@+id/bottomBar"
+
             android:layout_width="match_parent"
-            android:layout_height="58dp"
-            android:orientation="horizontal" />
+
+            android:layout_height="72dp"
+
+            android:orientation="horizontal"
+
+            android:gravity="center"
+
+            android:paddingStart="20dp"
+
+            android:paddingEnd="20dp">
+
+            <Button
+
+                android:id="@+id/addTransactionButton"
+
+                android:layout_width="match_parent"
+
+                android:layout_height="48dp"
+
+                android:text="+ Add transaction"
+
+                android:textAllCaps="false" />
+
+        </LinearLayout>
 
     </LinearLayout>
 </FrameLayout>
