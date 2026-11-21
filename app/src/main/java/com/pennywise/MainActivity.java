@@ -1,18 +1,26 @@
 package com.pennywise;
 
 import android.os.Bundle;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import com.pennywise.database.AppDatabase;
+import com.pennywise.database.DatabaseClient;
+
 
 public class MainActivity extends AppCompatActivity {
+
+    private AppDatabase database;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        database = DatabaseClient
+                .getInstance(getApplicationContext())
+                .getAppDatabase();
         WindowCompat.enableEdgeToEdge(getWindow());
         setContentView(R.layout.activity_main);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
