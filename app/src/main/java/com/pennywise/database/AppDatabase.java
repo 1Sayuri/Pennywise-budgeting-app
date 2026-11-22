@@ -8,7 +8,7 @@ import androidx.room.RoomDatabase;
                 BankAccount.class,
                 TransactionEntity.class
         },
-        version = 1,
+        version = 2,
         exportSchema = false
 )
 

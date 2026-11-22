@@ -14,14 +14,20 @@ public class BankAccount {
     private String accountName;
     private String accountType;
 
+    private String lastFour;
+    private String cardImage;
+
     private long openingBalanceCents;
     @Ignore
     public BankAccount(String bankName, String accountName,
-                       String accountType, long openingBalanceCents) {
+                       String accountType, long openingBalanceCents,
+                       String lastFour, String cardImage) {
         this.bankName = bankName;
         this.accountName = accountName;
         this.accountType = accountType;
         this.openingBalanceCents = openingBalanceCents;
+        this.lastFour = lastFour;
+        this.cardImage = cardImage;
     }
     public BankAccount() {
     }
@@ -60,6 +66,11 @@ public class BankAccount {
         this.accountType = accountType;
     }
 
+    public String getLastFour() { return lastFour; }
+    public void setLastFour(String lastFour) { this.lastFour = lastFour; }
+
+    public String getCardImage() { return cardImage; }
+    public void setCardImage(String cardImage) { this.cardImage = cardImage; }
     public void setOpeningBalanceCents(long openingBalanceCents) {
         this.openingBalanceCents = openingBalanceCents;
     }
