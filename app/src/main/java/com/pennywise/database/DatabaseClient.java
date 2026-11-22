@@ -20,6 +20,25 @@ public class DatabaseClient {
             db.execSQL("ALTER TABLE bank_accounts ADD COLUMN cardImage TEXT");
         }
     };
+    // Version 2 -> 3: add the wishlist table
+    static final Migration MIGRATION_2_3 = new Migration(2, 3) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase db) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS `wishlist_items` ("
+                    + "`itemId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
+                    + "`accountId` INTEGER NOT NULL, "
+                    + "`name` TEXT, "
+                    + "`priceCents` INTEGER NOT NULL, "
+                    + "`savedCents` INTEGER NOT NULL, "
+                    + "`emoji` TEXT, "
+                    + "`link` TEXT, "
+                    + "FOREIGN KEY(`accountId`) REFERENCES `bank_accounts`(`accountId`) "
+                    + "ON UPDATE NO ACTION ON DELETE CASCADE)");
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_wishlist_items_accountId` "
+                    + "ON `wishlist_items` (`accountId`)");
+        }
+    };
+
 
     private static DatabaseClient instance;
 
@@ -31,7 +50,7 @@ public class DatabaseClient {
                 context.getApplicationContext(),
                 AppDatabase.class,
                 "pennywise_database"
-        ).addMigrations(MIGRATION_1_2)
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .build();
     }
 
