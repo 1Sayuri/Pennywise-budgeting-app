@@ -1,7 +1,7 @@
 package com.pennywise.model;
 
 // BUDGET MANAGER
-// A brain class that handles all the elements in the program and their interractions
+// The brain class that handles all the elements in the program and their interactions
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,23 +9,26 @@ import java.util.Map;
 
 public class BudgetManager {
 
+    // ===== Singleton: one shared manager for every screen =====
+    private static BudgetManager instance;
 
-    // A list for each element of the program
+    public static BudgetManager getInstance() {
+        if (instance == null) {
+            instance = new BudgetManager();
+        }
+        return instance;
+    }
+
+    // ===== Data =====
     private List<BudgetCategory> categories = new ArrayList<>();
     private List<Transaction> transactions = new ArrayList<>();
     private List<WishlistItem> wishlist = new ArrayList<>();
 
-
-    // Adding a new category
+    // ===== Categories =====
     public void addCategory(String name) {
         categories.add(new BudgetCategory(name));
     }
 
-    public void addWishlistItem(String name, double price, String emoji, String link) {
-        wishlist.add(new WishlistItem(name, price, emoji, link));
-    }
-
-    // Finding a category
     public BudgetCategory getCategory(String name) {
         for (BudgetCategory c : categories) {
             if (c.getName().equalsIgnoreCase(name)) {
@@ -35,76 +38,102 @@ public class BudgetManager {
         return null;
     }
 
-
-    // ADDING OR EXTRACTING MONEY FROM A CATEGORY, RECORDING THE TRANSACTION
-    public void addIncome(String description, double amount, String categoryName) {
+    // ===== Income & expenses =====
+    public void addIncome(String description, long amountCents, String categoryName) {
         BudgetCategory category = getCategory(categoryName);
         if (category == null) {
             throw new IllegalArgumentException("Category not found: " + categoryName);
         }
-
-        category.addMoney(amount);
-        transactions.add(new Transaction(description, amount, "income", categoryName));
+        category.addMoney(amountCents);
+        transactions.add(new Transaction(description, amountCents, "income",
+                categoryName, System.currentTimeMillis()));
     }
 
-    public void addExpense(String description, double amount, String categoryName) {
+    public void addExpense(String description, long amountCents, String categoryName) {
         BudgetCategory category = getCategory(categoryName);
         if (category == null) {
             throw new IllegalArgumentException("Category not found: " + categoryName);
         }
-
-        category.spendMoney(amount);
-        transactions.add(new Transaction(description, amount, "expense", categoryName));
+        category.spendMoney(amountCents);
+        transactions.add(new Transaction(description, amountCents, "expense",
+                categoryName, System.currentTimeMillis()));
     }
 
-    // Splitting the income into the categories
-    public void allocateIncome(String description, double amount, Map<String, Double> percentages) {
-        double total = 0;
+    // Split one income across categories by percentage (must add up to 100)
+    public void allocateIncome(String description, long amountCents, Map<String, Double> percentages) {
+        double totalPercent = 0;
         for (double p : percentages.values()) {
-            total += p;
+            totalPercent += p;
         }
-        if (Math.abs(total - 100) > 0.01) {
+        if (Math.abs(totalPercent - 100) > 0.01) {
             throw new IllegalArgumentException("Percentages must add up to 100.");
         }
 
+        long allocated = 0;
+        int index = 0;
         for (Map.Entry<String, Double> entry : percentages.entrySet()) {
-            String categoryName = entry.getKey();
-            double share = amount * entry.getValue() / 100;
-            addIncome(description, share, categoryName);
+            index++;
+            long share;
+            if (index == percentages.size()) {
+                share = amountCents - allocated; // last one gets the leftover cents
+            } else {
+                share = Math.round(amountCents * entry.getValue() / 100);
+            }
+            allocated += share;
+            if (share > 0) {
+                addIncome(description, share, entry.getKey());
+            }
         }
     }
 
-    public void saveForItem(String itemName, double amount, String fromCategory) {
-        WishlistItem item = getWishlistItem(itemName);
-        if (item == null) {
-            throw new IllegalArgumentException("Wishlist item not found: " + itemName);
-        }
-        if (amount > item.getPrice() - item.getSaved()) {
-            throw new IllegalArgumentException("That's more than the item needs.");
-        }
-
-        addExpense("Saved for " + itemName, amount, fromCategory);
-        item.addSavings(amount);
-    }
-
-
-    // ============ GETTER AND SETTERS =====================
-    public double getTotalBalance() {
-        double total = 0;
+    // ===== Totals =====
+    public long getTotalBalanceCents() {
+        long total = 0;
         for (BudgetCategory c : categories) {
-            total += c.getBalance();
+            total += c.getBalanceCents();
         }
         return total;
     }
 
-    public double getTotalIncome() {
-        double total = 0;
+    public long getTotalIncomeCents() {
+        long total = 0;
         for (Transaction t : transactions) {
-            if (t.getType().equals("income")) {
-                total += t.getAmount();
+            if (t.getType().equals("income")) total += t.getAmountCents();
+        }
+        return total;
+    }
+
+    public long getTotalExpensesCents() {
+        long total = 0;
+        for (Transaction t : transactions) {
+            if (t.getType().equals("expense")) total += t.getAmountCents();
+        }
+        return total;
+    }
+
+    public long getReceivedInCategoryCents(String categoryName) {
+        long total = 0;
+        for (Transaction t : transactions) {
+            if (t.getType().equals("income") && t.getCategory().equalsIgnoreCase(categoryName)) {
+                total += t.getAmountCents();
             }
         }
         return total;
+    }
+
+    public long getSpentInCategoryCents(String categoryName) {
+        long total = 0;
+        for (Transaction t : transactions) {
+            if (t.getType().equals("expense") && t.getCategory().equalsIgnoreCase(categoryName)) {
+                total += t.getAmountCents();
+            }
+        }
+        return total;
+    }
+
+    // ===== Wishlist =====
+    public void addWishlistItem(String name, long priceCents, String emoji, String link) {
+        wishlist.add(new WishlistItem(name, priceCents, emoji, link));
     }
 
     public WishlistItem getWishlistItem(String name) {
@@ -116,28 +145,20 @@ public class BudgetManager {
         return null;
     }
 
-    public double getTotalExpenses() {
-        double total = 0;
-        for (Transaction t : transactions) {
-            if (t.getType().equals("expense")) {
-                total += t.getAmount();
-            }
+    public void saveForItem(String itemName, long amountCents, String fromCategory) {
+        WishlistItem item = getWishlistItem(itemName);
+        if (item == null) {
+            throw new IllegalArgumentException("Wishlist item not found: " + itemName);
         }
-        return total;
+        if (amountCents > item.getRemainingCents()) {
+            throw new IllegalArgumentException("That's more than the item needs.");
+        }
+        addExpense("Saved for " + itemName, amountCents, fromCategory);
+        item.addSavings(amountCents);
     }
 
-    public List<BudgetCategory> getCategories() {
-        return categories;
-    }
-
-    public List<Transaction> getTransactions() {
-        return transactions;
-    }
-
-
-    public List<WishlistItem> getWishlist() {
-        return wishlist;
-    }
-
-
+    // ===== Getters =====
+    public List<BudgetCategory> getCategories() { return categories; }
+    public List<Transaction> getTransactions() { return transactions; }
+    public List<WishlistItem> getWishlist() { return wishlist; }
 }
