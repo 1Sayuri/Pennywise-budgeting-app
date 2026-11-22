@@ -3,55 +3,38 @@ package com.pennywise.model;
 public class BudgetCategory {
 
     private String name;
-    private double balance;
+    private long balanceCents;
 
     public BudgetCategory(String name) {
         if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException(
-                "Category name cannot be empty."
-            );
+            throw new IllegalArgumentException("Category name cannot be empty.");
         }
-
         this.name = name;
-        this.balance = 0.0;
+        this.balanceCents = 0;
     }
 
-    public String getName() {
-        return name;
-    }
+    public String getName() { return name; }
+    public long getBalanceCents() { return balanceCents; }
 
-    public double getBalance() {
-        return balance;
-    }
-
-    public void addMoney(double amount) {
-        if (amount <= 0 || !Double.isFinite(amount)) {
-            throw new IllegalArgumentException(
-                "Amount must be positive."
-            );
+    public void addMoney(long amountCents) {
+        if (amountCents <= 0) {
+            throw new IllegalArgumentException("Amount must be positive.");
         }
-
-        balance += amount;
+        balanceCents += amountCents;
     }
 
-    public void spendMoney(double amount) {
-        if (amount <= 0 || !Double.isFinite(amount)) {
-            throw new IllegalArgumentException(
-                "Amount must be positive."
-            );
+    public void spendMoney(long amountCents) {
+        if (amountCents <= 0) {
+            throw new IllegalArgumentException("Amount must be positive.");
         }
-
-        if (amount > balance) {
-            throw new IllegalArgumentException(
-                "Insufficient funds in " + name + "."
-            );
+        if (amountCents > balanceCents) {
+            throw new IllegalArgumentException("Insufficient funds in " + name + ".");
         }
-
-        balance -= amount;
+        balanceCents -= amountCents;
     }
 
     @Override
     public String toString() {
-        return name + " Balance: $" + balance;
+        return name + " Balance: " + balanceCents + " cents";
     }
 }
