@@ -25,6 +25,8 @@ import com.pennywise.database.TransactionEntity;
 import java.util.Calendar;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import android.widget.ProgressBar;
+import com.pennywise.database.WishlistEntity;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -68,10 +70,12 @@ public class MainActivity extends AppCompatActivity {
         Executors.newSingleThreadExecutor().execute(() -> {
             List<BankAccount> accounts = database.bankAccountDao().getAllAccounts();
             List<TransactionEntity> txs = database.transactionDao().getAllTransactions();
+            List<WishlistEntity> wishes = database.wishlistDao().getAllItems();
             runOnUiThread(() -> {
                 showTotals(accounts, txs);
                 showBuckets(txs);
-                showCards(accounts, txs);
+                showWishlist(wishes, accounts);
+                showCards(accounts, txs, wishes);
             });
         });
     }
@@ -157,20 +161,76 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Cards row with live balances
-    private void showCards(List<BankAccount> accounts, List<TransactionEntity> txs) {
+    private void showCards(List<BankAccount> accounts, List<TransactionEntity> txs,
+                           List<WishlistEntity> wishes) {
         LinearLayout row = findViewById(R.id.cardRow);
         row.removeAllViews();
         LayoutInflater inflater = LayoutInflater.from(this);
 
         for (BankAccount a : accounts) {
+            long reserved = reservedFor(a.getAccountId(), wishes);
+            long available = balanceFor(a, txs) - reserved;
+
             View card = inflater.inflate(R.layout.view_card, row, false);
             CardArt.bind(card, a.getCardImage(), a.getBankName(), a.getAccountName(),
                     a.getLastFour(), a.getAccountType(),
-                    Money.format(balanceFor(a, txs)), "");
+                    Money.format(available),
+                    reserved > 0 ? Money.format(reserved) + " reserved" : "");
 
             LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) card.getLayoutParams();
             lp.setMarginEnd(Math.round(12 * getResources().getDisplayMetrics().density));
             row.addView(card, lp);
+        }
+    }
+
+    // Money reserved on one card for wishlist items
+    private long reservedFor(int accountId, List<WishlistEntity> wishes) {
+        long sum = 0;
+        for (WishlistEntity w : wishes) {
+            if (w.getAccountId() == accountId) sum += w.getSavedCents();
+        }
+        return sum;
+    }
+
+    private String cardName(int accountId, List<BankAccount> accounts) {
+        for (BankAccount a : accounts) {
+            if (a.getAccountId() == accountId) return a.getAccountName();
+        }
+        return "";
+    }
+
+    private void showWishlist(List<WishlistEntity> wishes, List<BankAccount> accounts) {
+        LinearLayout list = findViewById(R.id.wishList);
+        list.removeAllViews();
+        LayoutInflater inflater = LayoutInflater.from(this);
+
+        findViewById(R.id.wishEmpty).setVisibility(wishes.isEmpty() ? View.VISIBLE : View.GONE);
+
+        for (WishlistEntity w : wishes) {
+            View row = inflater.inflate(R.layout.item_wish, list, false);
+            ((TextView) row.findViewById(R.id.wishEmoji)).setText(w.getEmoji());
+            ((TextView) row.findViewById(R.id.wishName)).setText(w.getName());
+            ((ProgressBar) row.findViewById(R.id.wishProgress)).setProgress(w.getProgressPercent());
+            ((TextView) row.findViewById(R.id.wishAmounts)).setText(
+                    Money.format(w.getSavedCents()) + " / " + Money.format(w.getPriceCents())
+                            + " · " + cardName(w.getAccountId(), accounts));
+
+            TextView save = row.findViewById(R.id.wishSave);
+            if (w.getRemainingCents() <= 0) {
+                save.setText("Done ✓");
+                save.setEnabled(false);
+            }
+            list.addView(row);
+        }
+
+        // Callout describes the first item
+        TextView callout = findViewById(R.id.calloutText);
+        if (wishes.isEmpty()) {
+            callout.setText("Add something to your wishlist and start saving toward it.");
+        } else {
+            WishlistEntity first = wishes.get(0);
+            callout.setText(first.getName() + " is " + first.getProgressPercent()
+                    + "% funded. " + Money.format(first.getRemainingCents()) + " to go.");
         }
     }
     private void checkSavedAccounts() {

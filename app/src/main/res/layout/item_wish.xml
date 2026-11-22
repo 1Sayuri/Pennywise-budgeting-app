@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp">
+
+        <TextView
+            android:id="@+id/wishEmoji"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:gravity="center"
+            android:background="@drawable/bg_callout"
+            android:text="🎧"
+            android:textSize="20sp" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/wishName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Headphones"
+                android:textSize="15sp"
+                android:textColor="@color/n_text"
+                android:fontFamily="@font/inter_semibold" />
+
+            <ProgressBar
+                android:id="@+id/wishProgress"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="6dp"
+                android:layout_marginTop="6dp"
+                android:max="100"
+                android:progress="33"
+                android:progressDrawable="@drawable/progress_wish" />
+
+            <TextView
+                android:id="@+id/wishAmounts"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="$50 / $150 · Chase"
+                android:textSize="12sp"
+                android:textColor="@color/n_gray"
+                android:fontFamily="@font/inter" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/wishSave"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:gravity="center"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:background="@drawable/bg_tag"
+            android:backgroundTint="@color/tag_pink_bg"
+            android:text="+ Save"
+            android:textSize="13sp"
+            android:textColor="@color/tag_pink"
+            android:fontFamily="@font/inter_semibold" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/n_border" />
+</LinearLayout>
