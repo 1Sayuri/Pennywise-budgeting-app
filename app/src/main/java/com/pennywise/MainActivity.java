@@ -27,6 +27,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import android.widget.ProgressBar;
 import com.pennywise.database.WishlistEntity;
+import android.app.AlertDialog;
+import android.widget.EditText;
+import android.text.InputType;
+import android.widget.Toast;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -49,6 +55,8 @@ public class MainActivity extends AppCompatActivity {
 
         findViewById(R.id.addCardLink).setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, AddCardActivity.class)));
+        findViewById(R.id.addWishLink).setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, AddWishlistActivity.class)));
 
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -219,6 +227,10 @@ public class MainActivity extends AppCompatActivity {
             if (w.getRemainingCents() <= 0) {
                 save.setText("Done ✓");
                 save.setEnabled(false);
+            } else {
+
+                save.setOnClickListener(v -> showSaveDialog(w));
+
             }
             list.addView(row);
         }
@@ -257,5 +269,66 @@ public class MainActivity extends AppCompatActivity {
             executor.shutdown();
         });
     }
+    private void showSaveDialog(WishlistEntity item) {
 
+        EditText amountInput = new EditText(this);
+        amountInput.setHint("Enter amount ($)");
+        amountInput.setInputType(
+                InputType.TYPE_CLASS_NUMBER |
+                        InputType.TYPE_NUMBER_FLAG_DECIMAL
+        );
+
+        new AlertDialog.Builder(this)
+                .setTitle("Save for " + item.getName())
+                .setMessage("Remaining: " +
+                        Money.format(item.getRemainingCents()))
+                .setView(amountInput)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Save", (dialog, which) -> {
+
+                    String input = amountInput.getText().toString().trim();
+
+                    if (input.isEmpty()) {
+                        Toast.makeText(this,
+                                "Enter an amount",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    try {
+                        long amount = new BigDecimal(input)
+                                .movePointRight(2)
+                                .setScale(0, RoundingMode.HALF_UP)
+                                .longValueExact();
+
+                        if (amount <= 0) {
+                            Toast.makeText(this,
+                                    "Amount must be positive",
+                                    Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        if (amount > item.getRemainingCents()) {
+                            Toast.makeText(this,
+                                    "Amount exceeds remaining target",
+                                    Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        item.setSavedCents(item.getSavedCents() + amount);
+
+                        Executors.newSingleThreadExecutor().execute(() -> {
+                            database.wishlistDao().updateItem(item);
+
+                            runOnUiThread(this::loadDashboard);
+                        });
+
+                    } catch (Exception e) {
+                        Toast.makeText(this,
+                                "Enter a valid amount",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .show();
+    }
 }

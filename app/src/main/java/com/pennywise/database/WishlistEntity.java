@@ -8,16 +8,15 @@ import androidx.room.PrimaryKey;
 
 @Entity(
         tableName = "wishlist_items",
-        foreignKeys = @ForeignKey(
-                entity = BankAccount.class,
-                parentColumns = "accountId",
-                childColumns = "accountId",
-                onDelete = ForeignKey.CASCADE
-        ),
-        indices = {@Index("accountId")}
-)
+foreignKeys = @ForeignKey(
+        entity = BankAccount.class,
+        parentColumns ="accountId",
+childColumns = "accountId",
+onDelete = ForeignKey.CASCADE
+),
+indices = {@Index("accountId")}
+        )
 public class WishlistEntity {
-
     @PrimaryKey(autoGenerate = true)
     private int itemId;
 
@@ -27,6 +26,7 @@ public class WishlistEntity {
     private long savedCents;
     private String emoji;
     private String link;
+    private String imagePath;
 
     public WishlistEntity() {}
 
@@ -38,30 +38,46 @@ public class WishlistEntity {
         if (priceCents <= 0) {
             throw new IllegalArgumentException("Price must be positive.");
         }
+
         this.accountId = accountId;
         this.name = name.trim();
         this.priceCents = priceCents;
         this.savedCents = 0;
         this.emoji = (emoji == null || emoji.isEmpty()) ? "🎁" : emoji;
         this.link = link;
+        this.imagePath = null;
     }
 
-    public long getRemainingCents() { return priceCents - savedCents; }
-    public int getProgressPercent() { return (int) (savedCents * 100 / priceCents); }
+    public long getRemainingCents() {
+        return priceCents - savedCents;
+    }
 
-    // Getters & setters (Room needs both)
+    public int getProgressPercent() {
+        return (int) (savedCents * 100 / priceCents);
+    }
+
     public int getItemId() { return itemId; }
     public void setItemId(int itemId) { this.itemId = itemId; }
+
     public int getAccountId() { return accountId; }
     public void setAccountId(int accountId) { this.accountId = accountId; }
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+
     public long getPriceCents() { return priceCents; }
     public void setPriceCents(long priceCents) { this.priceCents = priceCents; }
+
     public long getSavedCents() { return savedCents; }
     public void setSavedCents(long savedCents) { this.savedCents = savedCents; }
+
     public String getEmoji() { return emoji; }
     public void setEmoji(String emoji) { this.emoji = emoji; }
+
     public String getLink() { return link; }
     public void setLink(String link) { this.link = link; }
+
+    public String getImagePath() { return imagePath; }
+    public void setImagePath(String imagePath) { this.imagePath = imagePath; }
+
 }
