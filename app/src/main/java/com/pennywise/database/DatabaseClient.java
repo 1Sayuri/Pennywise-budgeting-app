@@ -41,6 +41,31 @@ public class DatabaseClient {
             db.execSQL("ALTER TABLE wishlist_items ADD COLUMN imagePath TEXT");
         }
     };
+    static final Migration MIGRATION_4_5 = new Migration(4, 5) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase db) {
+
+            db.execSQL("CREATE TABLE IF NOT EXISTS `savings_challenges` ("
+                    + "`challengeId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
+                    + "`title` TEXT, "
+                    + "`targetAmountCents` INTEGER NOT NULL, "
+                    + "`startDate` INTEGER NOT NULL, "
+                    + "`status` TEXT)");
+
+            db.execSQL("CREATE TABLE IF NOT EXISTS `savings_weeks` ("
+                    + "`weekId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
+                    + "`challengeId` INTEGER NOT NULL, "
+                    + "`weekNumber` INTEGER NOT NULL, "
+                    + "`targetAmountCents` INTEGER NOT NULL, "
+                    + "`savedAmountCents` INTEGER NOT NULL, "
+                    + "`isCompleted` INTEGER NOT NULL, "
+                    + "FOREIGN KEY(`challengeId`) REFERENCES `savings_challenges`(`challengeId`) "
+                    + "ON UPDATE NO ACTION ON DELETE CASCADE)");
+
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_savings_weeks_challengeId` "
+                    + "ON `savings_weeks` (`challengeId`)");
+        }
+    };
 
     private static DatabaseClient instance;
 
@@ -56,7 +81,8 @@ public class DatabaseClient {
                 .addMigrations(
                         MIGRATION_1_2,
                         MIGRATION_2_3,
-                        MIGRATION_3_4
+                        MIGRATION_3_4,
+                        MIGRATION_4_5
                 )
                 .build();
     }

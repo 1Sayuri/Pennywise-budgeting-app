@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PennyWise">
         <activity
+            android:name=".SavingsChallengeActivity"
+            android:exported="false" />
+        <activity
             android:name=".AddWishlistActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />

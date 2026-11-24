@@ -34,7 +34,9 @@ import android.widget.Toast;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.io.File;
-
+import android.view.Gravity;
+import android.widget.Button;
+import android.widget.ScrollView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -58,7 +60,33 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, AddCardActivity.class)));
         findViewById(R.id.addWishLink).setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, AddWishlistActivity.class)));
+        View challengeCard = findViewById(R.id.savingsChallengeCard);
 
+        challengeCard.setAlpha(0f);
+        challengeCard.setTranslationY(24f);
+
+        challengeCard.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(650)
+                .setStartDelay(150)
+                .start();
+
+        findViewById(R.id.savingsChallengeButton).setOnClickListener(v -> {
+
+            v.animate()
+                    .scaleX(0.96f)
+                    .scaleY(0.96f)
+                    .setDuration(90)
+                    .withEndAction(() -> v.animate()
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .setDuration(120)
+                            .start())
+                    .start();
+
+            openSavingsChallenge();
+        });
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -298,6 +326,258 @@ public class MainActivity extends AppCompatActivity {
             callout.setText(first.getName() + " is " + first.getProgressPercent()
                     + "% funded. " + Money.format(first.getRemainingCents()) + " to go.");
         }
+    }
+
+    private void openSavingsChallenge() {
+
+        Executors.newSingleThreadExecutor().execute(() -> {
+
+            com.pennywise.database.SavingsChallengeDao dao =
+                    database.savingsChallengeDao();
+
+            com.pennywise.database.SavingsChallenge challenge =
+                    dao.getChallenge();
+
+            if (challenge == null) {
+
+                challenge = new com.pennywise.database.SavingsChallenge();
+
+                challenge.setTitle("52-Week Savings Challenge");
+                challenge.setTargetAmountCents(137800);
+                challenge.setStartDate(System.currentTimeMillis());
+                challenge.setStatus("active");
+
+                int challengeId = (int) dao.insertChallenge(challenge);
+
+                List<com.pennywise.database.SavingsWeek> weeks =
+                        new java.util.ArrayList<>();
+
+                for (int i = 1; i <= 52; i++) {
+
+                    com.pennywise.database.SavingsWeek week =
+                            new com.pennywise.database.SavingsWeek();
+
+                    week.setChallengeId(challengeId);
+                    week.setWeekNumber(i);
+                    week.setTargetAmountCents(i * 100L);
+                    week.setSavedAmountCents(0);
+                    week.setCompleted(false);
+
+                    weeks.add(week);
+                }
+
+                dao.insertWeeks(weeks);
+
+                challenge = dao.getChallenge();
+            }
+
+            com.pennywise.database.SavingsChallenge finalChallenge = challenge;
+
+            List<com.pennywise.database.SavingsWeek> weeks =
+                    dao.getWeeks(challenge.getChallengeId());
+
+            runOnUiThread(() ->
+                    showSavingsChallenge(finalChallenge, weeks));
+
+        });
+    }
+
+
+    private void showSavingsChallenge(
+            com.pennywise.database.SavingsChallenge challenge,
+            List<com.pennywise.database.SavingsWeek> weeks) {
+
+        LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
+        content.setPadding(24, 12, 24, 12);
+
+        long totalSaved = 0;
+        int completedWeeks = 0;
+
+        for (com.pennywise.database.SavingsWeek week : weeks) {
+
+            totalSaved += week.getSavedAmountCents();
+
+            if (week.isCompleted()) {
+                completedWeeks++;
+            }
+        }
+
+        TextView summary = new TextView(this);
+
+        summary.setText(
+                Money.format(totalSaved) + " saved of $1,378.00\n"
+                        + completedWeeks + " of 52 weeks completed"
+        );
+
+        summary.setTextSize(16);
+        summary.setTextColor(
+                ContextCompat.getColor(this, R.color.n_text));
+
+        summary.setPadding(0, 0, 0, 16);
+
+        content.addView(summary);
+
+        ScrollView scrollView = new ScrollView(this);
+
+        LinearLayout weekList = new LinearLayout(this);
+        weekList.setOrientation(LinearLayout.VERTICAL);
+
+        for (com.pennywise.database.SavingsWeek week : weeks) {
+
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setPadding(0, 10, 0, 10);
+
+            TextView details = new TextView(this);
+
+            details.setText(
+                    "Week " + week.getWeekNumber()
+                            + "   " + Money.format(week.getSavedAmountCents())
+                            + " / " + Money.format(week.getTargetAmountCents())
+                            + (week.isCompleted() ? " ✓" : "")
+            );
+
+            details.setTextSize(14);
+            details.setTextColor(
+                    ContextCompat.getColor(this, R.color.n_text));
+
+            details.setLayoutParams(
+                    new LinearLayout.LayoutParams(
+                            0,
+                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                            1f
+                    )
+            );
+
+            row.addView(details);
+
+            Button addButton = new Button(this);
+
+            addButton.setText(
+                    week.isCompleted() ? "Completed" : "Add Savings"
+            );
+
+            addButton.setTransformationMethod(null);
+            addButton.setEnabled(!week.isCompleted());
+
+            addButton.setOnClickListener(v ->
+                    showWeekSavingsDialog(challenge, week));
+
+            row.addView(addButton);
+
+            weekList.addView(row);
+        }
+
+        scrollView.addView(weekList);
+
+        scrollView.setLayoutParams(
+                new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        0,
+                        1f
+                )
+        );
+
+        content.addView(scrollView);
+
+        new AlertDialog.Builder(this)
+                .setTitle("52-Week Savings Challenge")
+                .setView(content)
+                .setPositiveButton("Close", null)
+                .show();
+    }
+
+
+    private void showWeekSavingsDialog(
+            com.pennywise.database.SavingsChallenge challenge,
+            com.pennywise.database.SavingsWeek week) {
+
+        EditText amountInput = new EditText(this);
+
+        amountInput.setHint("Amount saved ($)");
+
+        amountInput.setInputType(
+                InputType.TYPE_CLASS_NUMBER |
+                        InputType.TYPE_NUMBER_FLAG_DECIMAL
+        );
+
+        new AlertDialog.Builder(this)
+                .setTitle("Week " + week.getWeekNumber())
+                .setMessage(
+                        "Remaining: " +
+                                Money.format(
+                                        week.getTargetAmountCents()
+                                                - week.getSavedAmountCents()
+                                )
+                )
+                .setView(amountInput)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Save", (dialog, which) -> {
+
+                    String input = amountInput.getText()
+                            .toString().trim();
+
+                    if (input.isEmpty()) {
+                        Toast.makeText(this,
+                                "Enter an amount",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    try {
+
+                        long amount = new BigDecimal(input)
+                                .movePointRight(2)
+                                .setScale(0, RoundingMode.HALF_UP)
+                                .longValueExact();
+
+                        long remaining =
+                                week.getTargetAmountCents()
+                                        - week.getSavedAmountCents();
+
+                        if (amount <= 0 || amount > remaining) {
+
+                            Toast.makeText(this,
+                                    "Enter an amount up to "
+                                            + Money.format(remaining),
+                                    Toast.LENGTH_SHORT).show();
+
+                            return;
+                        }
+
+                        week.setSavedAmountCents(
+                                week.getSavedAmountCents() + amount
+                        );
+
+                        week.setCompleted(
+                                week.getSavedAmountCents()
+                                        >= week.getTargetAmountCents()
+                        );
+
+                        Executors.newSingleThreadExecutor().execute(() -> {
+
+                            database.savingsChallengeDao()
+                                    .updateWeek(week);
+
+                            List<com.pennywise.database.SavingsWeek> updatedWeeks =
+                                    database.savingsChallengeDao()
+                                            .getWeeks(challenge.getChallengeId());
+
+                            runOnUiThread(() ->
+                                    showSavingsChallenge(challenge, updatedWeeks));
+                        });
+
+                    } catch (Exception e) {
+
+                        Toast.makeText(this,
+                                "Enter a valid amount",
+                                Toast.LENGTH_SHORT).show();
+                    }
+
+                })
+                .show();
     }
     private void checkSavedAccounts() {
 

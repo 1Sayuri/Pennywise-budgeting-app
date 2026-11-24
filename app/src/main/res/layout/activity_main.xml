@@ -276,6 +276,42 @@
                         android:textSize="13sp"
                         android:textColor="@color/n_light_gray"
                         android:fontFamily="@font/inter" />
+                    <!-- SAVINGS CHALLENGE -->
+                    <LinearLayout
+                        android:id="@+id/savingsChallengeCard"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="22dp"
+                        android:orientation="vertical"
+                        android:background="@drawable/bg_callout"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="52-Week Savings Challenge"
+                            android:textSize="16sp"
+                            android:textColor="@color/n_text"
+                            android:fontFamily="@font/inter_semibold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="Save a little every week and reach your $1,378 goal."
+                            android:textSize="13sp"
+                            android:textColor="@color/n_gray"
+                            android:fontFamily="@font/inter" />
+
+                        <Button
+                            android:id="@+id/savingsChallengeButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:layout_marginTop="12dp"
+                            android:text="View savings challenge"
+                            android:textAllCaps="false" />
+
+                    </LinearLayout>
                     <!-- CARDS -->
                     <LinearLayout
                         android:layout_width="match_parent"
