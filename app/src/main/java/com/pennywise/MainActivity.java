@@ -33,6 +33,7 @@ import android.text.InputType;
 import android.widget.Toast;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.io.File;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -232,6 +233,59 @@ public class MainActivity extends AppCompatActivity {
                 save.setOnClickListener(v -> showSaveDialog(w));
 
             }
+            TextView delete = row.findViewById(R.id.wishDelete);
+
+            delete.setOnClickListener(v -> {
+
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("Delete Wishlist Item")
+                        .setMessage("Are you sure you want to delete "
+                                + w.getName() + "?")
+                        .setNegativeButton("Cancel", null)
+                        .setPositiveButton("Delete", (dialog, which) -> {
+
+                            Executors.newSingleThreadExecutor().execute(() -> {
+
+                                try {
+
+                                    database.wishlistDao().deleteItem(w);
+
+                                    String imagePath = w.getImagePath();
+
+                                    if (imagePath != null && !imagePath.isEmpty()) {
+                                        File imageFile = new File(imagePath);
+
+                                        if (imageFile.exists()) {
+                                            imageFile.delete();
+                                        }
+                                    }
+
+                                    runOnUiThread(() -> {
+                                        Toast.makeText(
+                                                MainActivity.this,
+                                                "Wishlist item deleted",
+                                                Toast.LENGTH_SHORT
+                                        ).show();
+
+                                        loadDashboard();
+                                    });
+
+                                } catch (Exception e) {
+
+                                    runOnUiThread(() ->
+                                            Toast.makeText(
+                                                    MainActivity.this,
+                                                    "Could not delete wishlist item.",
+                                                    Toast.LENGTH_SHORT
+                                            ).show()
+                                    );
+                                }
+
+                            });
+
+                        })
+                        .show();
+            });
             list.addView(row);
         }
 
