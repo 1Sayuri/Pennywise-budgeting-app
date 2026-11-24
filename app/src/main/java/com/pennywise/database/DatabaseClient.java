@@ -7,12 +7,7 @@ import androidx.room.Room;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
-
-
 public class DatabaseClient {
-
-
-    // Version 1 -> 2: add card details to bank accounts
     static final Migration MIGRATION_1_2 = new Migration(1, 2) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase db) {
@@ -20,7 +15,7 @@ public class DatabaseClient {
             db.execSQL("ALTER TABLE bank_accounts ADD COLUMN cardImage TEXT");
         }
     };
-    // Version 2 -> 3: add the wishlist table
+
     static final Migration MIGRATION_2_3 = new Migration(2, 3) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase db) {
@@ -34,11 +29,18 @@ public class DatabaseClient {
                     + "`link` TEXT, "
                     + "FOREIGN KEY(`accountId`) REFERENCES `bank_accounts`(`accountId`) "
                     + "ON UPDATE NO ACTION ON DELETE CASCADE)");
+
             db.execSQL("CREATE INDEX IF NOT EXISTS `index_wishlist_items_accountId` "
                     + "ON `wishlist_items` (`accountId`)");
         }
     };
 
+    static final Migration MIGRATION_3_4 = new Migration(3, 4) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase db) {
+            db.execSQL("ALTER TABLE wishlist_items ADD COLUMN imagePath TEXT");
+        }
+    };
 
     private static DatabaseClient instance;
 
@@ -47,10 +49,15 @@ public class DatabaseClient {
     private DatabaseClient(Context context) {
 
         appDatabase = Room.databaseBuilder(
-                context.getApplicationContext(),
-                AppDatabase.class,
-                "pennywise_database"
-                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                        context.getApplicationContext(),
+                        AppDatabase.class,
+                        "pennywise_database"
+                )
+                .addMigrations(
+                        MIGRATION_1_2,
+                        MIGRATION_2_3,
+                        MIGRATION_3_4
+                )
                 .build();
     }
 

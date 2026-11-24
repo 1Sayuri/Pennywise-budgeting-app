@@ -9,11 +9,10 @@ import androidx.room.RoomDatabase;
                 TransactionEntity.class,
                 WishlistEntity.class
         },
-        version = 3,
+        version = 4,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
-
     public abstract BankAccountDao bankAccountDao();
 
     public abstract TransactionDao transactionDao();
