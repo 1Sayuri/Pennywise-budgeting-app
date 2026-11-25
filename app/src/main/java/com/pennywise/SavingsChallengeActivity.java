@@ -29,6 +29,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import android.app.AlertDialog;
+import com.pennywise.database.BankAccount;
+
 
 public class SavingsChallengeActivity extends AppCompatActivity {
 
@@ -41,6 +44,7 @@ public class SavingsChallengeActivity extends AppCompatActivity {
         ChallengeTemplate template;
         ChallengeProgress progress;
         SavingsWeek nextStep; // next check-in, or null
+        long saved;
     }
 
     @Override
@@ -83,6 +87,8 @@ public class SavingsChallengeActivity extends AppCompatActivity {
                         if (!w.isCompleted()) { r.nextStep = w; break; }
                     }
                 }
+                Long savedObj = db.savingsChallengeDao().getTotalSaved(c.getChallengeId());
+                r.saved = savedObj == null ? 0 : savedObj;
                 rows.add(r);
             }
             runOnUiThread(() -> draw(rows, all));
@@ -122,6 +128,7 @@ public class SavingsChallengeActivity extends AppCompatActivity {
                     }
             }
             activeList.addView(v);
+            v.setOnClickListener(x -> confirmQuit(r));
         }
 
         // ===== Browse (not running yet) =====
@@ -145,8 +152,36 @@ public class SavingsChallengeActivity extends AppCompatActivity {
     }
 
     private void start(ChallengeTemplate t) {
+        if (!t.isCheckIn()) {
+            startWithCard(t, null); // automatic: watches all cards
+            return;
+        }
+
+        // Check-in: ask which card the savings go to
         executor.execute(() -> {
-            ChallengeService.startChallenge(db, t);
+            List<BankAccount> accounts = db.bankAccountDao().getAllAccounts();
+            runOnUiThread(() -> {
+                if (accounts.isEmpty()) {
+                    Toast.makeText(this, "Add a card first", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                String[] names = new String[accounts.size()];
+                for (int i = 0; i < accounts.size(); i++) {
+                    names[i] = accounts.get(i).getBankName() + " · " + accounts.get(i).getAccountName();
+                }
+                new AlertDialog.Builder(this)
+                        .setTitle("Save into which card?")
+                        .setItems(names, (dialog, which) ->
+                                startWithCard(t, accounts.get(which).getAccountId()))
+                        .setNegativeButton("Cancel", null)
+                        .show();
+            });
+        });
+    }
+
+    private void startWithCard(ChallengeTemplate t, Integer accountId) {
+        executor.execute(() -> {
+            ChallengeService.startChallenge(db, t, accountId);
             runOnUiThread(() -> {
                 Toast.makeText(this, t.getTitle() + " started!", Toast.LENGTH_SHORT).show();
                 load();
@@ -163,6 +198,30 @@ public class SavingsChallengeActivity extends AppCompatActivity {
                 load();
             });
         });
+    }
+    private void confirmQuit(Row r) {
+        String message;
+        if (r.saved > 0 && r.challenge.getAccountId() != null) {
+            message = "Your progress will be deleted, and "
+                    + Money.format(r.saved) + " will be released back to your card.";
+        } else {
+            message = "Your progress will be deleted.";
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle("Quit " + r.template.getTitle() + "?")
+                .setMessage(message)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Quit", (dialog, which) ->
+                        executor.execute(() -> {
+                            db.savingsChallengeDao().deleteChallenge(r.challenge);
+                            runOnUiThread(() -> {
+                                Toast.makeText(this, r.template.getTitle() + " removed",
+                                        Toast.LENGTH_SHORT).show();
+                                load();
+                            });
+                        }))
+                .show();
     }
 
     private void styleTag(TextView tag, String text, int bgColor, int textColor) {

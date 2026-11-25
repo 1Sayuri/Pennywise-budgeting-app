@@ -58,6 +58,7 @@
                 android:progressDrawable="@drawable/progress_wish" />
         </LinearLayout>
 
+        <!-- Start / Check in button -->
         <TextView
             android:id="@+id/chAction"
             android:layout_width="wrap_content"
@@ -71,6 +72,18 @@
             android:textSize="13sp"
             android:textColor="@color/tag_green"
             android:fontFamily="@font/inter_semibold" />
+
+        <!-- Trash button (separate view) -->
+        <TextView
+            android:id="@+id/chDelete"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="6dp"
+            android:gravity="center"
+            android:background="@drawable/bg_callout"
+            android:text="🗑️"
+            android:textSize="15sp"
+            android:contentDescription="Delete challenge" />
     </LinearLayout>
 
     <View

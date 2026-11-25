@@ -16,6 +16,8 @@ public class SavingsChallenge {
 
     private String templateKey;   // "week52", "no_spend_week", "five_a_day", "food_less"
 
+    private Integer accountId; // card for check-in challenges, null for automatic ones
+
     @ColumnInfo(defaultValue = "0")
     private long endDate;
 
@@ -77,4 +79,7 @@ public class SavingsChallenge {
     public void setEndDate(long endDate) {
         this.endDate = endDate;
     }
+
+    public Integer getAccountId() { return accountId; }
+    public void setAccountId(Integer accountId) { this.accountId = accountId; }
 }
