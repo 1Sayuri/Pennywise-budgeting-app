@@ -56,7 +56,7 @@ public class ChallengeTemplate {
                     "Set aside $5 every day for 30 days. That's $150.",
                     CHECK_IN, 30, "Day", 30),
             new ChallengeTemplate("food_less", "🥗", "Spend Less on Food",
-                    "Spend less on Food this month than you did last month.",
+                    "\"Spend less on Food in the next 30 days than in the 30 days before.",
                     AUTOMATIC, 1, "Month", 30)
     );
 

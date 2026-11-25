@@ -37,6 +37,11 @@ import java.io.File;
 import android.view.Gravity;
 import android.widget.Button;
 import android.widget.ScrollView;
+import com.pennywise.challenges.ChallengeProgress;
+import com.pennywise.challenges.ChallengeService;
+import com.pennywise.database.SavingsChallenge;
+import com.pennywise.model.ChallengeTemplate;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -94,6 +99,7 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
         checkSavedAccounts();
+
     }
 
     @Override
@@ -108,11 +114,26 @@ public class MainActivity extends AppCompatActivity {
             List<BankAccount> accounts = database.bankAccountDao().getAllAccounts();
             List<TransactionEntity> txs = database.transactionDao().getAllTransactions();
             List<WishlistEntity> wishes = database.wishlistDao().getAllItems();
+
+            // NEW: active challenges + their progress
+            List<SavingsChallenge> challenges = database.savingsChallengeDao().getAllChallenges();
+            List<ChallengeTemplate> activeTemplates = new ArrayList<>();
+            List<ChallengeProgress> activeProgress = new ArrayList<>();
+            for (SavingsChallenge c : challenges) {
+                ChallengeTemplate t = ChallengeTemplate.find(c.getTemplateKey());
+                if (t == null) continue;
+                ChallengeProgress p = ChallengeService.progress(database, c, txs);
+                if (!"active".equals(p.status)) continue;
+                activeTemplates.add(t);
+                activeProgress.add(p);
+            }
+
             runOnUiThread(() -> {
                 showTotals(accounts, txs);
                 showBuckets(txs);
                 showWishlist(wishes, accounts);
                 showCards(accounts, txs, wishes);
+                showDashChallenges(activeTemplates, activeProgress); // NEW
             });
         });
     }
@@ -328,7 +349,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void openSavingsChallenge() {
+    void openSavingsChallenge() {
+        startActivity(new Intent(this, SavingsChallengeActivity.class));
+    }
+    void openSavingsChallengeDialog() {
 
         Executors.newSingleThreadExecutor().execute(() -> {
 
@@ -664,5 +688,30 @@ public class MainActivity extends AppCompatActivity {
                     }
                 })
                 .show();
+    }
+
+    private void showDashChallenges(List<ChallengeTemplate> templates, List<ChallengeProgress> progress) {
+        LinearLayout list = findViewById(R.id.dashChallengeList);
+        list.removeAllViews();
+        findViewById(R.id.dashChallengeEmpty)
+                .setVisibility(templates.isEmpty() ? View.VISIBLE : View.GONE);
+
+        LayoutInflater inflater = LayoutInflater.from(this);
+        for (int i = 0; i < templates.size(); i++) {
+            ChallengeTemplate t = templates.get(i);
+            ChallengeProgress p = progress.get(i);
+
+            View row = inflater.inflate(R.layout.item_challenge_mini, list, false);
+            ((TextView) row.findViewById(R.id.miniEmoji)).setText(t.getEmoji());
+            ((TextView) row.findViewById(R.id.miniTitle)).setText(t.getTitle());
+            ((ProgressBar) row.findViewById(R.id.miniProgress)).setProgress(p.percent);
+
+            String label = p.label;
+            int dot = label.lastIndexOf("·");
+            ((TextView) row.findViewById(R.id.miniStatus))
+                    .setText(dot >= 0 ? label.substring(dot + 1).trim() : label);
+
+            list.addView(row);
+        }
     }
 }
