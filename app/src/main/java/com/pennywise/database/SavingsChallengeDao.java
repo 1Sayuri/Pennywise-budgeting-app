@@ -36,4 +36,7 @@ public interface SavingsChallengeDao {
 
     @Query("SELECT COUNT(*) FROM savings_weeks WHERE challengeId = :challengeId AND isCompleted = 1")
     int getCompletedWeeks(int challengeId);
+
+    @Query("SELECT * FROM savings_challenges ORDER BY startDate DESC")
+    List<SavingsChallenge> getAllChallenges();
 }

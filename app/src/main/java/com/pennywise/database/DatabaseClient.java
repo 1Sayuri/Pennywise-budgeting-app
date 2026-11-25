@@ -41,6 +41,15 @@ public class DatabaseClient {
             db.execSQL("ALTER TABLE wishlist_items ADD COLUMN imagePath TEXT");
         }
     };
+
+    static final Migration MIGRATION_5_6 = new Migration(5, 6) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase db) {
+            db.execSQL("ALTER TABLE savings_challenges ADD COLUMN templateKey TEXT");
+            db.execSQL("ALTER TABLE savings_challenges ADD COLUMN endDate INTEGER NOT NULL DEFAULT 0");
+        }
+    };
+
     static final Migration MIGRATION_4_5 = new Migration(4, 5) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase db) {
@@ -82,7 +91,8 @@ public class DatabaseClient {
                         MIGRATION_1_2,
                         MIGRATION_2_3,
                         MIGRATION_3_4,
-                        MIGRATION_4_5
+                        MIGRATION_4_5,
+                        MIGRATION_5_6
                 )
                 .build();
     }
