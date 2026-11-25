@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_sheet"
+    android:paddingStart="22dp"
+    android:paddingEnd="22dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="22dp">
+
+    <!-- Drag handle -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/bg_tag"
+        android:backgroundTint="@color/n_border" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:text="Save into which card?"
+        android:textSize="20sp"
+        android:textColor="@color/n_text"
+        android:fontFamily="@font/inter_semibold" />
+
+    <TextView
+        android:id="@+id/sheetSubtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="🪙 $5 a Day · $150 total"
+        android:textSize="13sp"
+        android:textColor="@color/n_gray"
+        android:fontFamily="@font/inter" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="14dp"
+        android:background="@color/n_border" />
+
+    <LinearLayout
+        android:id="@+id/cardOptions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" />
+
+    <TextView
+        android:id="@+id/sheetCancel"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:text="Cancel"
+        android:textSize="15sp"
+        android:textColor="@color/n_gray"
+        android:fontFamily="@font/inter_semibold" />
+</LinearLayout>

@@ -7,14 +7,15 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import android.graphics.Color;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.pennywise.ui.CardArt;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
-
 import com.pennywise.challenges.ChallengeProgress;
 import com.pennywise.challenges.ChallengeService;
 import com.pennywise.database.AppDatabase;
@@ -157,7 +158,6 @@ public class SavingsChallengeActivity extends AppCompatActivity {
             return;
         }
 
-        // Check-in: ask which card the savings go to
         executor.execute(() -> {
             List<BankAccount> accounts = db.bankAccountDao().getAllAccounts();
             runOnUiThread(() -> {
@@ -165,18 +165,46 @@ public class SavingsChallengeActivity extends AppCompatActivity {
                     Toast.makeText(this, "Add a card first", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                String[] names = new String[accounts.size()];
-                for (int i = 0; i < accounts.size(); i++) {
-                    names[i] = accounts.get(i).getBankName() + " · " + accounts.get(i).getAccountName();
-                }
-                new AlertDialog.Builder(this)
-                        .setTitle("Save into which card?")
-                        .setItems(names, (dialog, which) ->
-                                startWithCard(t, accounts.get(which).getAccountId()))
-                        .setNegativeButton("Cancel", null)
-                        .show();
+                showCardSheet(t, accounts);
             });
         });
+    }
+
+    private void showCardSheet(ChallengeTemplate t, List<BankAccount> accounts) {
+        BottomSheetDialog sheet = new BottomSheetDialog(this);
+        View view = LayoutInflater.from(this).inflate(R.layout.sheet_pick_card, null);
+
+        ((TextView) view.findViewById(R.id.sheetSubtitle)).setText(
+                t.getEmoji() + " " + t.getTitle() + " · " + Money.format(t.totalTargetCents()) + " total");
+
+        LinearLayout options = view.findViewById(R.id.cardOptions);
+        for (BankAccount a : accounts) {
+            View row = LayoutInflater.from(this).inflate(R.layout.item_card_option, options, false);
+
+            View art = row.findViewById(R.id.optionArt);
+            art.setBackgroundResource(CardArt.drawableFor(a.getCardImage()));
+            art.setClipToOutline(true);
+
+            ((TextView) row.findViewById(R.id.optionBank)).setText(a.getBankName());
+            String last = (a.getLastFour() == null || a.getLastFour().isEmpty()) ? "••••" : a.getLastFour();
+            ((TextView) row.findViewById(R.id.optionDetails))
+                    .setText(a.getAccountName() + " · •••• " + last);
+
+            row.setOnClickListener(v -> {
+                sheet.dismiss();
+                startWithCard(t, a.getAccountId());
+            });
+            options.addView(row);
+        }
+
+        view.findViewById(R.id.sheetCancel).setOnClickListener(v -> sheet.dismiss());
+
+        sheet.setContentView(view);
+        sheet.show();
+
+        // Let our rounded corners show (the default sheet background is a white square)
+        View container = (View) view.getParent();
+        container.setBackgroundColor(Color.TRANSPARENT);
     }
 
     private void startWithCard(ChallengeTemplate t, Integer accountId) {
