@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp"
+    android:background="?attr/selectableItemBackground">
+
+    <View
+        android:id="@+id/optionArt"
+        android:layout_width="56dp"
+        android:layout_height="36dp"
+        android:background="@drawable/card_art_sage" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="14dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/optionBank"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="PennyBank"
+            android:textSize="15sp"
+            android:textColor="@color/n_text"
+            android:fontFamily="@font/inter_semibold" />
+
+        <TextView
+            android:id="@+id/optionDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Everyday Card · •••• 4417"
+            android:textSize="12sp"
+            android:textColor="@color/n_gray"
+            android:fontFamily="@font/inter" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="›"
+        android:textSize="22sp"
+        android:textColor="@color/n_light_gray" />
+</LinearLayout>
