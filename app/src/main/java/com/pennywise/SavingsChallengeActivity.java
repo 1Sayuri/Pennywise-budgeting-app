@@ -2,6 +2,8 @@ package com.pennywise;
 
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.room.ColumnInfo;
+
 
 public class SavingsChallengeActivity extends AppCompatActivity {
 

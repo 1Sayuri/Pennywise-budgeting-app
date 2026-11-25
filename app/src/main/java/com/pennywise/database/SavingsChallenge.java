@@ -2,6 +2,7 @@ package com.pennywise.database;
 
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
+import androidx.room.ColumnInfo;
 
 @Entity(tableName = "savings_challenges")
 public class SavingsChallenge {
@@ -12,6 +13,11 @@ public class SavingsChallenge {
     private long targetAmountCents;
     private long startDate;
     private String status;
+
+    private String templateKey;   // "week52", "no_spend_week", "five_a_day", "food_less"
+
+    @ColumnInfo(defaultValue = "0")
+    private long endDate;
 
     public SavingsChallenge() {
     }
@@ -54,5 +60,21 @@ public class SavingsChallenge {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getTemplateKey() {
+        return templateKey;
+    }
+
+    public void setTemplateKey(String templateKey) {
+        this.templateKey = templateKey;
+    }
+
+    public long getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(long endDate) {
+        this.endDate = endDate;
     }
 }
