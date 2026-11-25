@@ -1,5 +1,7 @@
 package com.pennywise;
 
+import android.app.AlertDialog;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,32 +9,31 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.graphics.Color;
-import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.pennywise.ui.CardArt;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.pennywise.challenges.ChallengeProgress;
 import com.pennywise.challenges.ChallengeService;
 import com.pennywise.database.AppDatabase;
+import com.pennywise.database.BankAccount;
 import com.pennywise.database.DatabaseClient;
 import com.pennywise.database.SavingsChallenge;
 import com.pennywise.database.SavingsWeek;
 import com.pennywise.database.TransactionEntity;
 import com.pennywise.model.ChallengeTemplate;
 import com.pennywise.model.Money;
+import com.pennywise.ui.CardArt;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import android.app.AlertDialog;
-import com.pennywise.database.BankAccount;
-
 
 public class SavingsChallengeActivity extends AppCompatActivity {
 
@@ -45,7 +46,7 @@ public class SavingsChallengeActivity extends AppCompatActivity {
         ChallengeTemplate template;
         ChallengeProgress progress;
         SavingsWeek nextStep; // next check-in, or null
-        long saved;
+        long saved;           // money reserved by this challenge
     }
 
     @Override
@@ -128,8 +129,17 @@ public class SavingsChallengeActivity extends AppCompatActivity {
                         styleTag(action, "Active", R.color.tag_blue_bg, R.color.tag_blue);
                     }
             }
+
+            // Trash only while the challenge is running
+            View delete = v.findViewById(R.id.chDelete);
+            if ("active".equals(r.progress.status)) {
+                delete.setVisibility(View.VISIBLE);
+                delete.setOnClickListener(x -> confirmQuit(r));
+            } else {
+                delete.setVisibility(View.GONE);
+            }
+
             activeList.addView(v);
-            v.setOnClickListener(x -> confirmQuit(r));
         }
 
         // ===== Browse (not running yet) =====
@@ -148,6 +158,8 @@ public class SavingsChallengeActivity extends AppCompatActivity {
             TextView action = v.findViewById(R.id.chAction);
             styleTag(action, "Start", R.color.tag_green_bg, R.color.tag_green);
             action.setOnClickListener(x -> start(t));
+
+            v.findViewById(R.id.chDelete).setVisibility(View.GONE);
             browseList.addView(v);
         }
     }
@@ -227,6 +239,7 @@ public class SavingsChallengeActivity extends AppCompatActivity {
             });
         });
     }
+
     private void confirmQuit(Row r) {
         String message;
         if (r.saved > 0 && r.challenge.getAccountId() != null) {
