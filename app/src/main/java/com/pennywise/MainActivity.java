@@ -1,5 +1,6 @@
 package com.pennywise;
 
+import java.util.HashMap;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -128,11 +129,21 @@ public class MainActivity extends AppCompatActivity {
                 activeProgress.add(p);
             }
 
+            // Money reserved on each card by check-in challenges
+            Map<Integer, Long> challengeReserved = new HashMap<>();
+            for (SavingsChallenge c : challenges) {
+                if (c.getAccountId() == null) continue;
+                Long saved = database.savingsChallengeDao().getTotalSaved(c.getChallengeId());
+                if (saved == null) continue;
+                Long prev = challengeReserved.get(c.getAccountId());
+                challengeReserved.put(c.getAccountId(), (prev == null ? 0 : prev) + saved);
+            }
+
             runOnUiThread(() -> {
                 showTotals(accounts, txs);
                 showBuckets(txs);
                 showWishlist(wishes, accounts);
-                showCards(accounts, txs, wishes);
+                showCards(accounts, txs, wishes, challengeReserved);
                 showDashChallenges(activeTemplates, activeProgress); // NEW
             });
         });
@@ -220,13 +231,15 @@ public class MainActivity extends AppCompatActivity {
 
     // Cards row with live balances
     private void showCards(List<BankAccount> accounts, List<TransactionEntity> txs,
-                           List<WishlistEntity> wishes) {
+                           List<WishlistEntity> wishes, Map<Integer, Long> challengeReserved) {
         LinearLayout row = findViewById(R.id.cardRow);
         row.removeAllViews();
         LayoutInflater inflater = LayoutInflater.from(this);
 
         for (BankAccount a : accounts) {
-            long reserved = reservedFor(a.getAccountId(), wishes);
+            Long fromChallenges = challengeReserved.get(a.getAccountId());
+            long reserved = reservedFor(a.getAccountId(), wishes)
+                    + (fromChallenges == null ? 0 : fromChallenges);
             long available = balanceFor(a, txs) - reserved;
 
             View card = inflater.inflate(R.layout.view_card, row, false);

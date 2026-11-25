@@ -7,6 +7,7 @@ import com.pennywise.database.TransactionEntity;
 import com.pennywise.model.ChallengeTemplate;
 import com.pennywise.model.Money;
 
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,9 +19,8 @@ public final class ChallengeService {
     public static final long DAY = 24L * 60 * 60 * 1000;
 
     // 1. Start a challenge from the library
-    public static long startChallenge(AppDatabase db, ChallengeTemplate t) {
+    public static long startChallenge(AppDatabase db, ChallengeTemplate t, Integer accountId) {
         long now = System.currentTimeMillis();
-
         SavingsChallenge c = new SavingsChallenge();
         c.setTitle(t.getTitle());
         c.setTemplateKey(t.getKey());
@@ -28,6 +28,8 @@ public final class ChallengeService {
         c.setStartDate(now);
         c.setEndDate(now + t.getDurationDays() * DAY);
         c.setStatus("active");
+        c.setAccountId(accountId);   // NEW
+
 
         long id = db.savingsChallengeDao().insertChallenge(c);
 
