@@ -1,5 +1,4 @@
 package com.pennywise;
-
 import java.util.HashMap;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -43,6 +42,7 @@ import com.pennywise.challenges.ChallengeService;
 import com.pennywise.database.SavingsChallenge;
 import com.pennywise.model.ChallengeTemplate;
 import java.util.ArrayList;
+import com.pennywise.ui.Anim;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -180,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
             else monthOut += t.getAmountCents();
         }
 
-        ((TextView) findViewById(R.id.balanceText)).setText(Money.format(total));
+        Anim.countUp(findViewById(R.id.balanceText), total);
         ((TextView) findViewById(R.id.incomeText)).setText("+" + Money.format(monthIn));
         ((TextView) findViewById(R.id.expenseText)).setText("−" + Money.format(monthOut));
     }
@@ -224,6 +224,7 @@ public class MainActivity extends AppCompatActivity {
             used.setBackgroundTintList(ContextCompat.getColorStateList(this, colors[0]));
             used.setTextColor(ContextCompat.getColor(this, colors[1]));
 
+            Anim.fadeInUp(row, i);
             list.addView(row);
             i++;
         }
@@ -236,6 +237,7 @@ public class MainActivity extends AppCompatActivity {
         row.removeAllViews();
         LayoutInflater inflater = LayoutInflater.from(this);
 
+        int index = 0;
         for (BankAccount a : accounts) {
             Long fromChallenges = challengeReserved.get(a.getAccountId());
             long reserved = reservedFor(a.getAccountId(), wishes)
@@ -250,6 +252,7 @@ public class MainActivity extends AppCompatActivity {
 
             LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) card.getLayoutParams();
             lp.setMarginEnd(Math.round(12 * getResources().getDisplayMetrics().density));
+            Anim.fadeInUp(card, index++);
             row.addView(card, lp);
         }
     }
@@ -277,22 +280,25 @@ public class MainActivity extends AppCompatActivity {
 
         findViewById(R.id.wishEmpty).setVisibility(wishes.isEmpty() ? View.VISIBLE : View.GONE);
 
+        int index = 0;
         for (WishlistEntity w : wishes) {
             View row = inflater.inflate(R.layout.item_wish, list, false);
             ((TextView) row.findViewById(R.id.wishEmoji)).setText(w.getEmoji());
             ((TextView) row.findViewById(R.id.wishName)).setText(w.getName());
-            ((ProgressBar) row.findViewById(R.id.wishProgress)).setProgress(w.getProgressPercent());
+            Anim.fillProgress(row.findViewById(R.id.wishProgress), w.getProgressPercent());
             ((TextView) row.findViewById(R.id.wishAmounts)).setText(
                     Money.format(w.getSavedCents()) + " / " + Money.format(w.getPriceCents())
                             + " · " + cardName(w.getAccountId(), accounts));
 
             TextView save = row.findViewById(R.id.wishSave);
+            Anim.pressEffect(save);
             if (w.getRemainingCents() <= 0) {
                 save.setText("Done ✓");
                 save.setEnabled(false);
             } else {
 
-                save.setOnClickListener(v -> showSaveDialog(w));
+                View emojiView = row.findViewById(R.id.wishEmoji);
+                save.setOnClickListener(v -> showSaveDialog(w, save, emojiView));
 
             }
             TextView delete = row.findViewById(R.id.wishDelete);
@@ -348,6 +354,7 @@ public class MainActivity extends AppCompatActivity {
                         })
                         .show();
             });
+            Anim.fadeInUp(row, index++);
             list.addView(row);
         }
 
@@ -640,7 +647,7 @@ public class MainActivity extends AppCompatActivity {
             executor.shutdown();
         });
     }
-    private void showSaveDialog(WishlistEntity item) {
+    private void showSaveDialog(WishlistEntity item, View saveButton, View emojiView) {
 
         EditText amountInput = new EditText(this);
         amountInput.setHint("Enter amount ($)");
@@ -691,7 +698,15 @@ public class MainActivity extends AppCompatActivity {
                         Executors.newSingleThreadExecutor().execute(() -> {
                             database.wishlistDao().updateItem(item);
 
-                            runOnUiThread(this::loadDashboard);
+                            runOnUiThread(() -> {
+                                Anim.floatText(this, saveButton, "+" + Money.format(amount));
+                                Anim.pop(emojiView);
+                                if (item.getRemainingCents() <= 0) {
+                                    Anim.confetti(this); // fully funded!
+                                }
+                                // Refresh after the animation has had time to play
+                                saveButton.postDelayed(this::loadDashboard, 700);
+                            });
                         });
 
                     } catch (Exception e) {
@@ -717,13 +732,14 @@ public class MainActivity extends AppCompatActivity {
             View row = inflater.inflate(R.layout.item_challenge_mini, list, false);
             ((TextView) row.findViewById(R.id.miniEmoji)).setText(t.getEmoji());
             ((TextView) row.findViewById(R.id.miniTitle)).setText(t.getTitle());
-            ((ProgressBar) row.findViewById(R.id.miniProgress)).setProgress(p.percent);
+            Anim.fillProgress(row.findViewById(R.id.miniProgress), p.percent);
 
             String label = p.label;
             int dot = label.lastIndexOf("·");
             ((TextView) row.findViewById(R.id.miniStatus))
                     .setText(dot >= 0 ? label.substring(dot + 1).trim() : label);
 
+            Anim.fadeInUp(row, i);
             list.addView(row);
         }
     }

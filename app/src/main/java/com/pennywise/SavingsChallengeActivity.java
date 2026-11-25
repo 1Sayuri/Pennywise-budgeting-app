@@ -9,6 +9,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.pennywise.ui.Anim;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -124,7 +125,8 @@ public class SavingsChallengeActivity extends AppCompatActivity {
                     if (r.nextStep != null) {
                         styleTag(action, "Check in · " + Money.format(r.nextStep.getTargetAmountCents()),
                                 R.color.tag_pink_bg, R.color.tag_pink);
-                        action.setOnClickListener(x -> checkIn(r));
+                        View emojiView = v.findViewById(R.id.chEmoji);
+                        action.setOnClickListener(x -> checkIn(r, action, emojiView));
                     } else {
                         styleTag(action, "Active", R.color.tag_blue_bg, R.color.tag_blue);
                     }
@@ -229,13 +231,21 @@ public class SavingsChallengeActivity extends AppCompatActivity {
         });
     }
 
-    private void checkIn(Row r) {
+    private void checkIn(Row r, View button, View emoji) {
+        long amount = r.nextStep.getTargetAmountCents();
+        boolean lastStep = r.nextStep.getWeekNumber() == r.template.getStepCount();
+
         executor.execute(() -> {
             ChallengeService.checkIn(db, r.nextStep);
             runOnUiThread(() -> {
-                Toast.makeText(this, r.template.getStepLabel() + " " + r.nextStep.getWeekNumber()
-                        + " done!", Toast.LENGTH_SHORT).show();
-                load();
+                Anim.floatText(this, button, "+" + Money.format(amount));
+                Anim.pop(emoji);
+                if (lastStep) {
+                    Anim.confetti(this); // challenge complete!
+                    Toast.makeText(this, r.template.getTitle() + " completed! 🎉",
+                            Toast.LENGTH_SHORT).show();
+                }
+                button.postDelayed(this::load, 700);
             });
         });
     }
